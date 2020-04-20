@@ -1,14 +1,13 @@
-@import "style";
 
 body {
-  background-image: url(sample.png);
+  background-image: url('/static/sample.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: 100% 100%;
 }
 h1{
     text-align: center;
-    color:white;
+    color: white;
 }
 
 * {
