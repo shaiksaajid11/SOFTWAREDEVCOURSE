@@ -1,21 +1,23 @@
 import os,sys   
 import time
-from flask import Flask, render_template, request
+from flask import *
 from flask_session import Session
 from models import *
 # from sqlalchemy import create_engine
 # from sqlalchemy.orm import scoped_session, sessionmaker
 
 app = Flask(__name__,static_url_path="/static")
-
+app.secret_key = 'thelionking'
 # Check for environment variable
 if not os.getenv("DATABASE_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
 # Configure session to use filesystem
+app.config["SESSION_TYPE"]="filesystem"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-#Session(app)
+
+Session(app)
 database.init_app(app)
 with app.app_context():
     database.create_all()
@@ -28,17 +30,28 @@ with app.app_context():
 def index():
     return render_template("index.html")
 
+@app.route("/register")
+def register():
+    return render_template("register.html")
 
-# @app.route("/login",methods=["GET", "POST"])
-# def login():
-#     if request.method == "POST":
-#         uname = request.form["uname"]
-#         passw = request.form["passw"]
-        
-#         login = user.query.filter_by(username=uname, password=passw).first()
-#         if login is not None:
-#             return redirect(url_for("index"))
-#     return render_template("login.html")
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/auth",methods=["GET", "POST"])
+def auth():
+    if request.method == "POST":
+        uname = request.form.get("username")
+        passw = request.form.get("password")
+        login = USERS.query.filter_by(username=uname).first()
+        if login is not None:
+            if login.username == uname and login.password == passw:
+                session['username'] = uname
+                return render_template("home.html")
+            else:
+                return render_template("login.html", message = "Wrong credentials")
+        else:
+            return render_template("login.html")
 
 @app.route("/user_details", methods=["POST", "GET"])
 def user_details():
@@ -54,6 +67,13 @@ def user_details():
         return render_template("error.html")
     
     return render_template("user_details.html", username=Username, email=Email)
+
+
+@app.route('/logout')
+def logout():
+    if 'username' in session:
+        session.pop('username', None)
+    return render_template("index.html")
 
 @app.route("/admin")
 def admin():

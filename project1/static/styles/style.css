@@ -67,3 +67,8 @@ h1{
     display: table;
     clear: both;
   }
+
+  .signin {
+    background-color: #f1f1f1;
+    text-align: center;
+  }
